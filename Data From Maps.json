@@ -1,0 +1,533 @@
+{
+  "name": "Lead Scraper using APify",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.data }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "To ensure the AI Agent consistently adheres to your strict \"no-array\" constraint and outputs the exact schema required for your n8n workflow, use the following system message.\n\nSystem Message\nRole: You are a specialized Data Extraction Assistant designed to output structured JSON for automated workflows in n8n.\n\nObjective: Extract and format information into a flat JSON object. You must strictly follow the schema provided below.\n\nConstraint Checklist:\n\nNo Arrays: You are forbidden from using square brackets []. If multiple items exist (like cities), list them as separate string keys or a single comma-separated string.\n\nString Only: Every value must be a string. Do not use integers, booleans, or nulls.\n\nFormat: Output valid, minified, or pretty-printed JSON only. No conversational filler or markdown explanations.\n\nBoolean rule: If any answer is yes, use true in JSON. Otherwise false. If you don't have a response for a specific boolean, use false in that.\n\nLanguage: Always set the language to English"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        464,
+        256
+      ],
+      "id": "fc93dd54-1a02-4159-abad-a1c592319409",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/actors/compass~crawler-google-places/runs?token=YOUR_APIFY_TOKEN_REPLACED",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"includeWebResults\": false,\n    \"language\": \"en\",\n    \"locationQuery\": \"{{ $json.output.locationQuery }}\",\n    \"maxCrawledPlacesPerSearch\": {{ $json.output.maxCrawledPlacesPerSearch }},\n    \"maximumLeadsEnrichmentRecords\": 0,\n    \"scrapeContacts\": {{ $json.output.scrapeContacts }},\n    \"scrapeDirectories\": {{ $json.output.scrapeDirectories }},\n    \"scrapeImageAuthors\": {{ $json.output.scrapeImageAuthors }},\n    \"scrapeOrderOnline\": {{ $json.output.scrapeOrderOnline }},\n    \"scrapePlaceDetailPage\": {{ $json.output.scrapePlaceDetailPage }},\n    \"scrapeReviewsPersonalData\": {{ $json.output.scrapeReviewsPersonalData }},\n    \"scrapeSocialMediaProfiles\": {\n        \"facebooks\": {{ $json.output.scrapeSocialMediaProfiles.facebooks }},\n        \"instagrams\": {{ $json.output.scrapeSocialMediaProfiles.instagrams }},\n        \"tiktoks\": {{ $json.output.scrapeSocialMediaProfiles.tiktoks }},\n        \"twitters\": {{ $json.output.scrapeSocialMediaProfiles.twitters }},\n        \"youtubes\": {{ $json.output.scrapeSocialMediaProfiles.youtubes }}\n    },\n    \"scrapeTableReservationProvider\": false,\n    \"searchStringsArray\": [\n        \"{{ $json.output.searchStringsArray[0] }}\"\n    ],\n    \"skipClosedPlaces\": {{ $json.output.skipClosedPlaces }},\n    \"verifyLeadsEnrichmentEmails\": {{ $json.output.verifyLeadsEnrichmentEmails }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        928,
+        256
+      ],
+      "id": "92ee955b-7e0a-43f9-9d9d-8a71d063efd9",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n    \"includeWebResults\": false,\n    \"language\": \"en\",\n    \"locationQuery\": \"Dhaka, Bangladesh\",\n    \"maxCrawledPlacesPerSearch\": 10,\n    \"maximumLeadsEnrichmentRecords\": 0,\n    \"scrapeContacts\": true,\n    \"scrapeDirectories\": false,\n    \"scrapeImageAuthors\": false,\n    \"scrapeOrderOnline\": false,\n    \"scrapePlaceDetailPage\": true,\n    \"scrapeReviewsPersonalData\": true,\n    \"scrapeSocialMediaProfiles\": {\n        \"facebooks\": true,\n        \"instagrams\": true,\n        \"tiktoks\": true,\n        \"twitters\": true,\n        \"youtubes\": true\n    },\n    \"scrapeTableReservationProvider\": false,\n    \"searchStringsArray\": [\n        \"Restaurants\"\n    ],\n    \"skipClosedPlaces\": false,\n    \"verifyLeadsEnrichmentEmails\": false\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        480
+      ],
+      "id": "c3155b00-20a0-4b7d-becf-ac9371888b98",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "amount": 60
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1152,
+        256
+      ],
+      "id": "2ed3bb72-b799-49eb-9920-fa6cda408865",
+      "name": "Wait",
+      "webhookId": "c41b8069-7601-431c-9f6b-a40f82140d82"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/actors/compass~crawler-google-places/runs/last/dataset/items?token=YOUR_APIFY_TOKEN_REPLACED",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1376,
+        256
+      ],
+      "id": "f9698871-42c1-4c35-9dc1-7d3a2bcff9ac",
+      "name": "HTTP Request1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "title, address, postalCode, phoneUnformatted",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        256
+      ],
+      "id": "3429aeea-3517-421a-b6d0-b8faba2316f7",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2048,
+        256
+      ],
+      "id": "5af682a4-b790-459c-b372-682ccd914365",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID_REPLACED",
+          "mode": "list",
+          "cachedResultName": "Sheets File Name Placeholder",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID_REPLACED/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID_REPLACED/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Loop Over Items').item.json.title }}",
+            "Address": "={{ $('Loop Over Items').item.json.address }}",
+            "Phone Number": "={{ $json.phoneUnformatted }}",
+            "Postal Code": "={{ $json.postalCode }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Postal Code",
+              "displayName": "Postal Code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2272,
+        304
+      ],
+      "id": "94c948ce-b39d-4ec3-b6bd-0184c1daffac",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_CREDENTIAL_ID_REPLACED",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "maxItems": 15
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1824,
+        256
+      ],
+      "id": "f7dd2b34-0556-4073-a2f5-e7a55c2b4e76",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "formTitle": "Details for scraping",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "How many searches do you want",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Do you want contacts?",
+              "fieldType": "checkbox",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Yes"
+                  },
+                  {
+                    "option": "No"
+                  }
+                ]
+              },
+              "limitSelection": "exact",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Do you want place details",
+              "fieldType": "checkbox",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Yes"
+                  },
+                  {
+                    "option": "No"
+                  }
+                ]
+              },
+              "limitSelection": "exact",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Do you want social media? If yes, then check the boxes of the social media you want.",
+              "fieldType": "checkbox",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Facebook"
+                  },
+                  {
+                    "option": "Instagram"
+                  },
+                  {
+                    "option": "Tiktok"
+                  },
+                  {
+                    "option": "X(twitter)"
+                  },
+                  {
+                    "option": "Youtube"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Do you want E-mails?",
+              "fieldType": "checkbox",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Yes"
+                  },
+                  {
+                    "option": "No"
+                  }
+                ]
+              },
+              "limitSelection": "exact",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Which City?",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Which country?",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Which Category",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -16,
+        256
+      ],
+      "id": "5d318382-e701-4311-8488-78ba0aa99bc3",
+      "name": "On form submission",
+      "webhookId": "6206de62-54fa-4072-8e9d-e19d0df06f92"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        208,
+        256
+      ],
+      "id": "da793f1d-c79a-4676-b021-d8cc81d54edf",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        640,
+        688
+      ],
+      "id": "fb191cbe-99fb-4c28-b73b-18b2ee284ff2",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "YOUR_CREDENTIAL_ID_REPLACED",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        432,
+        480
+      ],
+      "id": "9315680a-6f14-4349-abd5-2ea4dbc36158",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "YOUR_CREDENTIAL_ID_REPLACED",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4d23d240-a4eb-430b-8cbf-98e3e9ab8832",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "20cf75cd0417fe5be3c3d8dcf7163bcd4dd5f0947193527bf3d55f850ac76577"
+  },
+  "id": "UtEiHP8peL9lWGBA",
+  "tags": []
+}
